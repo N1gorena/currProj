@@ -2,6 +2,7 @@ package com.guango.society;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
@@ -11,46 +12,76 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
+import java.util.HashMap;
+
 public class OpeningActivity extends AppCompatActivity {
+    private final int FIN = 100;
+    //Loc
     private LocationManager locationManager;
-    private EstablishLocationListener myListener;
+    private EstablishLocationListener myLocationListener;
+    private ProgressBar locationBar;
+    //Inv
+    private HashMap<String,Integer> Inventory;
+    private ProgressBar inventoryBar;
+
+    //Char
+    private HashMap<String,Object> playerCharacter;
+    private ProgressBar characterStatisticsBar;
+    private ProgressBar characterModificationsBar;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_opening);
-        myListener = new EstablishLocationListener();
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        boolean locationPermission = true;
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 962);
-            locationPermission = false;
-        }
-        if (locationPermission)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myListener);
-
+        //User Info from Login.
+        Intent creationIntent = getIntent();
+        Bundle userLoggingInInformation = creationIntent.getExtras();
+        Integer userID = userLoggingInInformation.getInt(AppLanding.UID);
+        //Loc
+        locationBar = (ProgressBar)findViewById(R.id.LocationProgressBar);
+        locationBar.setProgress(FIN);
+        //Inv
+        inventoryBar = (ProgressBar)findViewById(R.id.InventoryProgressBar);
+        EstablishInventory inventoryGetter = new EstablishInventory(this);
+        inventoryGetter.execute(userID);
+        //CharacterStats and Modifications
+        characterStatisticsBar = (ProgressBar)findViewById(R.id.StatsProgressBar);
+        characterModificationsBar = (ProgressBar)findViewById(R.id.ModificationsProgressBar);
+        EstablishCharacter characterBuilder = new EstablishCharacter(this);
+        characterBuilder.execute(userID);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case 962: {
-                if (grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        return;
-                    }
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myListener);
-                }
-                else{
-                    ProgressBar locationBar = (ProgressBar)findViewById(R.id.LocationProgressBar);
+    public void setCharacter(HashMap<String, Object> characterMap) {
+        playerCharacter = characterMap;
+        characterStatisticsBar.setProgress(FIN);
+        characterModificationsBar.setProgress(FIN);
+    }
+    public void setInventory(HashMap<String,Integer> inv){
+        Inventory = inv;
+        inventoryBar.setProgress(FIN);
 
-                }
-            }
-            return;
-        }
     }
 
     public void BeginPlaying(View v){
-        Log.d("ALPHA","BEGIN");
+        //Log.d("ALPHA","BEGIN");
+        Character characterToBegin = new Character(playerCharacter,Inventory);
+        ProgressBar characterBar = (ProgressBar)findViewById(R.id.CharacterProgressBar);
+        characterBar.setProgress(100);
+        Intent letsPlay = new Intent(this,PlayActivity.class);
+        letsPlay.putExtra("CharacterObject",characterToBegin);
+        startActivity(letsPlay);
+        //Log.d("OMEGA","End");
     }
+
+
 }

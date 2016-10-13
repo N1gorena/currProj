@@ -19,7 +19,15 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 
 public class AppLanding extends AppCompatActivity {
-
+    public static final String UID = "USEIDENT";
+    public static URL SERVERURL;
+    static {
+        try {
+            SERVERURL = new URL("http://192.168.0.100/");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,14 +36,16 @@ public class AppLanding extends AppCompatActivity {
 
     public void Enter(View v){
 
-        AsyncTask<String,Void,Boolean> signInCommunique = new AsyncTask<String, Void, Boolean>() {
+        AsyncTask<String,Void,Integer> signInCommunique = new AsyncTask<String, Void, Integer>() {
             @Override
-            protected Boolean doInBackground(String... params) {
+            protected Integer doInBackground(String... params) {
                 String username = params[0];
                 String password = params[1];
 
+                Integer toReturn = Integer.valueOf(0);
+
                 try {
-                    java.net.URLConnection dbEndPoint = new URL("http://192.168.0.109/Login.php").openConnection();
+                    java.net.URLConnection dbEndPoint = new URL(SERVERURL,"Login.php").openConnection();
                     dbEndPoint.setDoOutput(true);
                     OutputStreamWriter toEndpoint = new OutputStreamWriter(dbEndPoint.getOutputStream());
                     toEndpoint.write("Username="+username);
@@ -46,8 +56,12 @@ public class AppLanding extends AppCompatActivity {
                     BufferedReader fromEndpoint = new BufferedReader(new InputStreamReader(dbEndPoint.getInputStream()));
                     String responseLine;
                    if((responseLine = fromEndpoint.readLine())!=null){
-                       Log.d("RESPONSE",responseLine);
-                       return (responseLine.equals("1"));
+                       //Log.d("RESPONSE",responseLine);
+                       if(!responseLine.equals("FALSE")){
+                           fromEndpoint.close();
+                           toReturn = Integer.valueOf(Integer.parseInt(responseLine));
+                           return toReturn;
+                       }
                    }
                     fromEndpoint.close();
 
@@ -55,14 +69,15 @@ public class AppLanding extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                return false;
+                return toReturn;
             }
 
             @Override
-            protected void onPostExecute(Boolean result){
-                if(result) {
+            protected void onPostExecute(Integer result){
+                if(result > 0 ) {
                     //Log.d("RESULT","POSITIVE");
                     Intent loggedInIntent = new Intent(getApplicationContext(), OpeningActivity.class);
+                    loggedInIntent.putExtra(UID,result);
                     startActivity(loggedInIntent);
 
                 }
@@ -71,7 +86,9 @@ public class AppLanding extends AppCompatActivity {
         };
 
         EditText passwordField = (EditText)findViewById(R.id.passwordEditText);
-        signInCommunique.execute("guangore@usc.edu",passwordField.getText().toString());
+        EditText usernameField = (EditText) findViewById(R.id.usernameEditText);
+        //signInCommunique.execute(usernameField.getText().toString(),passwordField.getText().toString());
+        signInCommunique.execute("guangore@usc.edu","Gabrindo7");
     }
 
     public void SignUp(View v){

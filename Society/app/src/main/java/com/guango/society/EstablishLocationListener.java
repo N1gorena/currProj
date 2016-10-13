@@ -12,23 +12,38 @@ import android.view.View;
  */
 public class EstablishLocationListener implements LocationListener {
 
-    public EstablishLocationListener(){
-
+    private double latestLat = 0.00000000;
+    private double latestLong = 0.000000000;
+    private boolean FRESH = true;
+    private PlayActivity parentActivity;
+    public EstablishLocationListener(PlayActivity mediator){
+        parentActivity = mediator;
     }
 
     @Override
     public void onLocationChanged(Location location){
-        Log.d("LOCATION",location.getLatitude()+"<Lat Long>"+location.getLongitude());
+        latestLat = location.getLatitude();
+        latestLong = location.getLongitude();
+        if(FRESH){
+            FRESH =false;
+            parentActivity.characterListo();
+        }
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras){}
 
     @Override
-    public void onProviderEnabled(String provider){}
+    public void onProviderEnabled(String provider){
+    }
 
     @Override
     public void onProviderDisabled(String provider){}
 
-
+    public double getLatestLat(){
+        return latestLat;
+    }
+    public double getLatestLong(){
+        return latestLong;
+    }
 }

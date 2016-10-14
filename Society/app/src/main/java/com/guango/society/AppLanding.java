@@ -23,7 +23,7 @@ public class AppLanding extends AppCompatActivity {
     public static URL SERVERURL;
     static {
         try {
-            SERVERURL = new URL("http://192.168.0.100/");
+            SERVERURL = new URL("http://192.168.0.101/");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL;
@@ -22,6 +23,9 @@ import static android.opengl.GLES20.glCreateProgram;
 
 public class WorldEngine implements GLSurfaceView.Renderer {
     private int programID;
+    public WorldEngine(ArrayList<GXMLObject> renderables){
+
+    }
     private  final String vertSrc = "#version 300 es\n"+
             "layout(location = 0) in vec3 position;\n"+
             "void main(){\n"+
